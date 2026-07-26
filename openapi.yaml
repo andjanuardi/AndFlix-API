@@ -1,25 +1,36 @@
 openapi: "3.0.3"
 info:
-  title: LOKLOK API Proxy (Go)
+  title: ANDFLIX-API
   description: |
-    Proxy server untuk LOKLOK API — porting Go dari Python version.
-    Menangani request signing, forwarding, dan response decryption secara otomatis.
+    Simplified REST API untuk streaming.
 
-    ## Alur
+    Proxy yang menyederhanakan akses ke layanan streaming menjadi endpoint RESTful yang mudah digunakan.
 
-    1. Client kirim request ke proxy (tanpa header signing)
-    2. Proxy generate `aeskey_internal` + `deviceId`, hitung `sign` / `usertype`, encrypt `aeskey`
-    3. Forward ke `api.loklok.fun` (PC) atau `h5-api.hehekang.com` (H5)
-    4. Jika response `ecy: 1`, proxy dekripsi `data` dengan AES-128-ECB
+    ## Endpoints Utama
 
-    ## Response Headers (persist session)
+    - `POST /getHome` — navigasi + konten halaman utama
+    - `POST /search` — pencarian film, drama, TV
+    - `POST /getDetail` — detail konten + player streaming + subtitle
+    - `GET /image` — proxy gambar (cover/poster)
+    - `GET /subtitle` — proxy subtitle SRT (difilter: Indonesia & English)
+    - `GET /stream` — proxy HLS (m3u8 rewrite + segment .ts)
 
-    - `X-Device-Id` — simpan dan kirim kembali di request berikutnya
-    - `X-Aeskey-Internal` — simpan dan kirim kembali (PC API only)
-  version: "1.0.0"
+    ## Session
+
+    Session dikelola otomatis via header:
+    - `X-Device-Id` — simpan dari response, kirim kembali di request berikutnya
+    - `X-Aeskey-Internal` — simpan dan kirim kembali
+    - `X-Token` — JWT untuk request terautentikasi
+
+    ## Catatan
+
+    - Subtitle hanya bahasa Indonesia (in_ID/in) dan English (en/en_US)
+    - URL gambar, subtitle, dan stream otomatis di-rewrite ke proxy endpoint
+    - `resourceStatus`: 1 → "Sedang Tayang", 2 → "Selesai"
+  version: "2.0.0"
 servers:
   - url: http://localhost:8080
-    description: Proxy lokal
+    description: Development server
 
 components:
   securitySchemes:
@@ -27,7 +38,7 @@ components:
       type: apiKey
       in: header
       name: X-Token
-      description: JWT token dari login
+      description: JWT token dari autentikasi
   parameters:
     DeviceIdHeader:
       name: X-Device-Id
@@ -494,7 +505,7 @@ paths:
                     example: ok
                   service:
                     type: string
-                    example: loklok-proxy
+                    example: andflix-api
 
   /getHome:
     post:

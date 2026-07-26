@@ -23,6 +23,7 @@ func main() {
 	r.GET("/openapi.yaml", handler.SpecHandler)
 
 	r.GET("/image", handler.ImageProxy)
+	r.GET("/subtitle", handler.SubtitleProxy)
 
 	r.POST("/getHome", handler.GetHomeCombined)
 
@@ -34,6 +35,7 @@ func main() {
 	fmt.Printf("Endpoints:\n")
 	fmt.Printf("  Core: /getHome (POST), /search (POST), /getDetail (POST)\n")
 	fmt.Printf("  Image: /image?url=... (GET)\n")
+	fmt.Printf("  Subtitle: /subtitle?url=... (GET)\n")
 	fmt.Printf("  Internal: /health, /docs, /openapi.yaml\n")
 
 	if err := r.Run(":" + port); err != nil {

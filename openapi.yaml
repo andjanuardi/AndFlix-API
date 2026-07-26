@@ -189,9 +189,38 @@ components:
           type: string
         subtitlingUrl:
           type: string
-          format: uri
+          example: "/subtitle?url=https://..."
         translateType:
           type: integer
+    StreamItem:
+      type: object
+      properties:
+        definition:
+          type: string
+          enum: [GROOT_HD, GROOT_SD, GROOT_LD, GROOT_FD]
+        url:
+          type: string
+          format: uri
+    PlayerInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        seriesNo:
+          type: integer
+        name:
+          type: string
+        subtitles:
+          type: array
+          items:
+            $ref: "#/components/schemas/H5SubtitleItem"
+        duration:
+          type: integer
+          nullable: true
+        urls:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamItem"
     H5DefinitionItem:
       type: object
       properties:
@@ -359,6 +388,43 @@ paths:
                     type: string
         "502":
           description: Gagal fetch gambar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /subtitle:
+    get:
+      summary: Proxy subtitle (SRT)
+      operationId: proxySubtitle
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: File SRT
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: Missing url parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502":
+          description: Gagal fetch subtitle
           content:
             application/json:
               schema:
@@ -636,40 +702,13 @@ paths:
                   statusCode:
                     type: integer
                     nullable: true
-                  episodes:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        seriesNo:
-                          type: integer
-                        name:
-                          type: string
-                        subtitles:
-                          type: array
-                          items:
-                            $ref: "#/components/schemas/H5SubtitleItem"
-                        duration:
-                          type: integer
-                          nullable: true
-                        viewable:
-                          type: boolean
-                        definitions:
-                          type: array
-                          items:
-                            $ref: "#/components/schemas/H5DefinitionItem"
+                  playerInfo:
+                    type: object
+                    $ref: "#/components/schemas/PlayerInfo"
                   recommendations:
                     type: array
                     items:
                       $ref: "#/components/schemas/ContentListItem"
-                  mediaUrl:
-                    type: string
-                    nullable: true
-                  currentDefinition:
-                    type: string
-                    nullable: true
                   totalDuration:
                     type: integer
                     nullable: true

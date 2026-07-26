@@ -55,6 +55,17 @@ func extractDeviceIDFromToken(token string) string {
 	return deviceID
 }
 
+func subtitleURL(raw interface{}) string {
+	s, ok := raw.(string)
+	if !ok || s == "" {
+		if raw != nil {
+			return fmt.Sprint(raw)
+		}
+		return ""
+	}
+	return "/subtitle?url=" + url.QueryEscape(s)
+}
+
 func forwardRequest(method, url string, headers map[string]string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

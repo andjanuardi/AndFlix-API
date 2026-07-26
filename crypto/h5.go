@@ -132,13 +132,13 @@ func H5BuildSignHeaders(params map[string]interface{}, deviceID, token string) m
 	aesKey := h5RSAEncrypt(randomKey)
 
 	headers := map[string]string{
-		"currentTime": currentTime,
-		"sign":        sign,
-		"aesKey":      aesKey,
-		"clientType":  "ANDROID",
-		"versionCode": "42",
-		"lang":        "in_ID",
-		"timezone":    "GMT+07:00",
+		"currentTime":  currentTime,
+		"sign":         sign,
+		"aesKey":       aesKey,
+		"clientType":   "ANDROID",
+		"versionCode":  "42",
+		"lang":         "in_ID",
+		"timezone":     "GMT+07:00",
 		"content-type": "application/json",
 	}
 	if deviceID != "" {

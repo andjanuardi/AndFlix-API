@@ -59,6 +59,7 @@ func filterSubtitles(raw interface{}) interface{} {
 		}
 		abbr, _ := m["languageAbbr"].(string)
 		if strings.HasPrefix(abbr, "in") || strings.HasPrefix(abbr, "en") {
+			m["subtitlingUrl"] = subtitleURL(m["subtitlingUrl"])
 			filtered = append(filtered, item)
 		}
 	}

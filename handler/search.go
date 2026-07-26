@@ -46,8 +46,8 @@ func Search(c *gin.Context) {
 	}
 
 	body := map[string]interface{}{
-		"size":           req.Size,
-		"searchKeyWord":  req.Keyword,
+		"size":          req.Size,
+		"searchKeyWord": req.Keyword,
 	}
 	_, result, err := callPCAPI("POST", "/cms/pc/search/searchWithKeyWord", nil, body, aeskeyInternal, deviceID, token)
 

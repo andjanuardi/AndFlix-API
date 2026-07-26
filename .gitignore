@@ -18,6 +18,7 @@
 
 # Log Files
 *.log
+*.err
 
 # IDE & Editor Files
 .vscode/

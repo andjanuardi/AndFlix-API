@@ -111,11 +111,11 @@ components:
         areas:
           type: array
           items:
-            $ref: '#/components/schemas/NamePair'
+            $ref: "#/components/schemas/NamePair"
         episodeVo:
           type: array
           items:
-            $ref: '#/components/schemas/EpisodeSummary'
+            $ref: "#/components/schemas/EpisodeSummary"
     NamePair:
       type: object
       properties:
@@ -150,7 +150,7 @@ components:
         recommendContentVOList:
           type: array
           items:
-            $ref: '#/components/schemas/HomeContentItem'
+            $ref: "#/components/schemas/HomeContentItem"
     HomeContentItem:
       type: object
       properties:
@@ -214,11 +214,11 @@ components:
         definitionList:
           type: array
           items:
-            $ref: '#/components/schemas/H5DefinitionItem'
+            $ref: "#/components/schemas/H5DefinitionItem"
         subtitlingList:
           type: array
           items:
-            $ref: '#/components/schemas/H5SubtitleItem'
+            $ref: "#/components/schemas/H5SubtitleItem"
         totalTime:
           type: integer
         vid:
@@ -265,11 +265,11 @@ components:
         episodeVo:
           type: array
           items:
-            $ref: '#/components/schemas/H5EpisodeItem'
+            $ref: "#/components/schemas/H5EpisodeItem"
         likeList:
           type: array
           items:
-            $ref: '#/components/schemas/ContentItem'
+            $ref: "#/components/schemas/ContentItem"
     PlayInfoData:
       type: object
       properties:
@@ -285,11 +285,48 @@ components:
         definitionList:
           type: array
           items:
-            $ref: '#/components/schemas/H5DefinitionItem'
+            $ref: "#/components/schemas/H5DefinitionItem"
         subtitlingList:
           type: array
           items:
-            $ref: '#/components/schemas/H5SubtitleItem'
+            $ref: "#/components/schemas/H5SubtitleItem"
+    ContentListItem:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        contentType:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        countries:
+          type: array
+          items:
+            type: string
+        year:
+          type: integer
+        rating:
+          type: number
+          format: float
+          nullable: true
+        cover:
+          type: string
+        poster:
+          type: string
+        description:
+          type: string
+        episodeCount:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        statusCode:
+          type: integer
+          nullable: true
 
 paths:
   /image:
@@ -414,13 +451,13 @@ paths:
                                 type: string
                               contentType:
                                 type: string
-                                enum: [MOVIE, DRAMA]
                               genres:
                                 type: array
                                 items:
                                   type: string
                               year:
                                 type: integer
+                                nullable: true
                               rating:
                                 type: number
                                 format: float
@@ -518,82 +555,121 @@ paths:
                           type: integer
                           nullable: true
 
-  /cms/web/movieDrama/get:
-    get:
-      summary: Detail konten dari H5 API
-      operationId: getMovieDetailH5
-      parameters:
-        - $ref: '#/components/parameters/DeviceIdHeader'
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: integer
-          example: 103934
-        - name: category
-          in: query
-          required: true
-          schema:
-            type: integer
-            enum: [0, 1]
+  /getDetail:
+    post:
+      summary: Detail konten + play info
+      operationId: getDetail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - category
+                - episode
+              properties:
+                id:
+                  type: integer
+                  example: 103934
+                category:
+                  type: integer
+                  enum: [0, 1]
+                  example: 1
+                episode:
+                  type: integer
+                  example: 1
+                  description: "Nomor episode. 0 = tanpa playInfo"
       responses:
         "200":
-          description: Detail konten (subtitle metadata per episode)
+          description: Detail konten + rekomendasi + play info (jika episode > 0)
           headers:
             X-Device-Id:
+              schema:
+                type: string
+            X-Aeskey-Internal:
               schema:
                 type: string
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/MovieDetailData'
-
-  /cms/web/ios_h5/movieDrama/getPlayInfo:
-    get:
-      summary: Info streaming H5 (m3u8, subtitle)
-      operationId: getPlayInfoMobile
-      parameters:
-        - $ref: '#/components/parameters/DeviceIdHeader'
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: integer
-          example: 103934
-        - name: category
-          in: query
-          required: true
-          schema:
-            type: integer
-            enum: [0, 1]
-        - name: definition
-          in: query
-          schema:
-            type: string
-            enum: [GROOT_FD, GROOT_HD, GROOT_SD]
-        - name: episodeId
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Info streaming (response TIDAK terenkripsi)
-          headers:
-            X-Device-Id:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/PlayInfoData'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  type:
+                    type: string
+                  contentType:
+                    type: string
+                  category:
+                    type: integer
+                  genres:
+                    type: array
+                    items:
+                      type: string
+                  countries:
+                    type: array
+                    items:
+                      type: string
+                    nullable: true
+                  year:
+                    type: integer
+                    nullable: true
+                  rating:
+                    type: number
+                    format: float
+                    nullable: true
+                  cover:
+                    type: string
+                  poster:
+                    type: string
+                  description:
+                    type: string
+                  episodeCount:
+                    type: integer
+                    nullable: true
+                  status:
+                    type: string
+                  statusCode:
+                    type: integer
+                    nullable: true
+                  episodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        seriesNo:
+                          type: integer
+                        name:
+                          type: string
+                        subtitles:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/H5SubtitleItem"
+                        duration:
+                          type: integer
+                          nullable: true
+                        viewable:
+                          type: boolean
+                        definitions:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/H5DefinitionItem"
+                  recommendations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContentListItem"
+                  mediaUrl:
+                    type: string
+                    nullable: true
+                  currentDefinition:
+                    type: string
+                    nullable: true
+                  totalDuration:
+                    type: integer
+                    nullable: true

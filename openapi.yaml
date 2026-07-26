@@ -1,0 +1,588 @@
+openapi: "3.0.3"
+info:
+  title: LOKLOK API Proxy (Go)
+  description: |
+    Proxy server untuk LOKLOK API — porting Go dari Python version.
+    Menangani request signing, forwarding, dan response decryption secara otomatis.
+
+    ## Alur
+
+    1. Client kirim request ke proxy (tanpa header signing)
+    2. Proxy generate `aeskey_internal` + `deviceId`, hitung `sign` / `usertype`, encrypt `aeskey`
+    3. Forward ke `api.loklok.fun` (PC) atau `h5-api.hehekang.com` (H5)
+    4. Jika response `ecy: 1`, proxy dekripsi `data` dengan AES-128-ECB
+
+    ## Response Headers (persist session)
+
+    - `X-Device-Id` — simpan dan kirim kembali di request berikutnya
+    - `X-Aeskey-Internal` — simpan dan kirim kembali (PC API only)
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+    description: Proxy lokal
+
+components:
+  securitySchemes:
+    LOKLOKAuth:
+      type: apiKey
+      in: header
+      name: X-Token
+      description: JWT token dari login
+  parameters:
+    DeviceIdHeader:
+      name: X-Device-Id
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Device ID dari response proxy sebelumnya
+    AeskeyInternalHeader:
+      name: X-Aeskey-Internal
+      in: header
+      required: false
+      schema:
+        type: string
+      description: AES key internal (PC API only)
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "00000"
+        msg:
+          type: string
+          example: "Success"
+        data:
+          type: object
+          nullable: true
+    NavigationItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        cnName:
+          type: string
+        redirectContentType:
+          type: string
+          enum: [HOME, RANK]
+        redirectUrl:
+          type: string
+        pictureUrl:
+          type: string
+        sequence:
+          type: integer
+    ContentItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        introduction:
+          type: string
+        coverHorizontalUrl:
+          type: string
+          format: uri
+        coverVerticalUrl:
+          type: string
+          format: uri
+        score:
+          type: number
+          format: float
+          nullable: true
+        releaseTime:
+          type: string
+        resourceNum:
+          type: integer
+          nullable: true
+        resourceStatus:
+          type: integer
+          nullable: true
+        domainType:
+          type: integer
+        subType:
+          type: string
+          enum: [MOVIE, DRAMA, COMIC, TV, VARIETY]
+        sort:
+          type: string
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamePair'
+        episodeVo:
+          type: array
+          items:
+            $ref: '#/components/schemas/EpisodeSummary'
+    NamePair:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    EpisodeSummary:
+      type: object
+      properties:
+        seriesNo:
+          type: integer
+        paidMode:
+          type: integer
+        ellipsis:
+          type: boolean
+    HomeSection:
+      type: object
+      properties:
+        homeSectionId:
+          type: integer
+        homeSectionType:
+          type: string
+          enum: [BANNER, SINGLE_ALBUM]
+        homeSectionName:
+          type: string
+        cnName:
+          type: string
+        bannerProportion:
+          type: number
+          format: float
+        recommendContentVOList:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeContentItem'
+    HomeContentItem:
+      type: object
+      properties:
+        cid:
+          type: string
+        contentType:
+          type: string
+          enum: [MOVIE, DRAMA]
+        title:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        introduction:
+          type: string
+        year:
+          type: integer
+        score:
+          type: number
+          format: float
+          nullable: true
+        resourceStatus:
+          type: integer
+          nullable: true
+        resourceNum:
+          type: integer
+          nullable: true
+        jumpAddress:
+          type: string
+    H5SubtitleItem:
+      type: object
+      properties:
+        language:
+          type: string
+        languageAbbr:
+          type: string
+        subtitlingUrl:
+          type: string
+          format: uri
+        translateType:
+          type: integer
+    H5DefinitionItem:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [GROOT_HD, GROOT_SD, GROOT_LD, GROOT_FD]
+        description:
+          type: string
+        fullDescription:
+          type: string
+    H5EpisodeItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        seriesNo:
+          type: integer
+        name:
+          type: string
+        definitionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/H5DefinitionItem'
+        subtitlingList:
+          type: array
+          items:
+            $ref: '#/components/schemas/H5SubtitleItem'
+        totalTime:
+          type: integer
+        vid:
+          type: string
+        resourceType:
+          type: integer
+        viewable:
+          type: boolean
+        paidMode:
+          type: integer
+          nullable: true
+    MovieDetailData:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        enName:
+          type: string
+        introduction:
+          type: string
+        category:
+          type: integer
+        episodeCount:
+          type: integer
+        coverHorizontalUrl:
+          type: string
+          format: uri
+        coverVerticalUrl:
+          type: string
+          format: uri
+        areaNameList:
+          type: array
+          items:
+            type: string
+        drameTypeVo:
+          type: object
+          properties:
+            drameName:
+              type: string
+            drameType:
+              type: string
+        episodeVo:
+          type: array
+          items:
+            $ref: '#/components/schemas/H5EpisodeItem'
+        likeList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItem'
+    PlayInfoData:
+      type: object
+      properties:
+        mediaUrl:
+          type: string
+          format: uri
+        totalDuration:
+          type: integer
+        currentDefinition:
+          type: string
+        episodeId:
+          type: string
+        definitionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/H5DefinitionItem'
+        subtitlingList:
+          type: array
+          items:
+            $ref: '#/components/schemas/H5SubtitleItem'
+
+paths:
+  /health:
+    get:
+      summary: Health check proxy
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Proxy berjalan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: loklok-proxy
+
+  /home/pc/navigationBar:
+    get:
+      summary: Daftar navigasi sidebar
+      operationId: getNavigationBar
+      security:
+        - LOKLOKAuth: []
+      responses:
+        "200":
+          description: Daftar navigasi
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          navigationBarItemList:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/NavigationItem'
+
+  /home/pc/getHome:
+    get:
+      summary: Konten halaman utama
+      operationId: getHome
+      parameters:
+        - $ref: '#/components/parameters/DeviceIdHeader'
+        - $ref: '#/components/parameters/AeskeyInternalHeader'
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: navigationId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Konten home
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          navigationId:
+                            type: integer
+                            nullable: true
+                          page:
+                            type: integer
+                          recommendItems:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/HomeSection'
+
+  /getHome:
+    post:
+      summary: Konten home gabungan (navigationBar + getHome)
+      operationId: getHomeCombined
+      parameters:
+        - $ref: '#/components/parameters/DeviceIdHeader'
+        - $ref: '#/components/parameters/AeskeyInternalHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - page
+                - navId
+              properties:
+                page:
+                  type: integer
+                  example: 0
+                navId:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          description: |
+            Response gabungan — memanggil `/home/pc/navigationBar` dan
+            `/home/pc/getHome` secara berurutan dengan session yang sama.
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+            X-Aeskey-Internal:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  navList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                  sectionList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        Name:
+                          type: string
+                        ContentList:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              title:
+                                type: string
+                              contentType:
+                                type: string
+                                enum: [MOVIE, DRAMA]
+                              genres:
+                                type: array
+                                items:
+                                  type: string
+                              year:
+                                type: integer
+                              rating:
+                                type: number
+                                format: float
+                                nullable: true
+                              cover:
+                                type: string
+                                format: uri
+                              poster:
+                                type: string
+                                format: uri
+                              description:
+                                type: string
+                              episodeCount:
+                                type: integer
+                                nullable: true
+                              status:
+                                type: integer
+                                nullable: true
+
+  /cms/pc/search/searchWithKeyWord:
+    post:
+      summary: Pencarian konten
+      operationId: searchByKeyword
+      security:
+        - LOKLOKAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - size
+                - searchKeyWord
+              properties:
+                size:
+                  type: integer
+                  example: 10
+                searchKeyWord:
+                  type: string
+                  example: one piece
+      responses:
+        "200":
+          description: Hasil pencarian
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ContentItem'
+
+  /cms/web/movieDrama/get:
+    get:
+      summary: Detail konten dari H5 API
+      operationId: getMovieDetailH5
+      parameters:
+        - $ref: '#/components/parameters/DeviceIdHeader'
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 103934
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [0, 1]
+      responses:
+        "200":
+          description: Detail konten (subtitle metadata per episode)
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MovieDetailData'
+
+  /cms/web/ios_h5/movieDrama/getPlayInfo:
+    get:
+      summary: Info streaming H5 (m3u8, subtitle)
+      operationId: getPlayInfoMobile
+      parameters:
+        - $ref: '#/components/parameters/DeviceIdHeader'
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 103934
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: definition
+          in: query
+          schema:
+            type: string
+            enum: [GROOT_FD, GROOT_HD, GROOT_SD]
+        - name: episodeId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Info streaming (response TIDAK terenkripsi)
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlayInfoData'

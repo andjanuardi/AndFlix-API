@@ -443,12 +443,10 @@ paths:
                                 type: integer
                                 nullable: true
 
-  /cms/pc/search/searchWithKeyWord:
+  /search:
     post:
       summary: Pencarian konten
-      operationId: searchByKeyword
-      security:
-        - LOKLOKAuth: []
+      operationId: search
       requestBody:
         required: true
         content:
@@ -457,28 +455,68 @@ paths:
               type: object
               required:
                 - size
-                - searchKeyWord
+                - keyword
               properties:
                 size:
                   type: integer
                   example: 10
-                searchKeyWord:
+                keyword:
                   type: string
                   example: one piece
       responses:
         "200":
           description: Hasil pencarian
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+            X-Aeskey-Internal:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ContentItem'
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        contentType:
+                          type: string
+                        genres:
+                          type: array
+                          items:
+                            type: string
+                        countries:
+                          type: array
+                          items:
+                            type: string
+                        year:
+                          type: integer
+                        rating:
+                          type: number
+                          format: float
+                          nullable: true
+                        cover:
+                          type: string
+                        poster:
+                          type: string
+                        description:
+                          type: string
+                        episodeCount:
+                          type: integer
+                          nullable: true
+                        status:
+                          type: string
+                        statusCode:
+                          type: integer
+                          nullable: true
 
   /cms/web/movieDrama/get:
     get:

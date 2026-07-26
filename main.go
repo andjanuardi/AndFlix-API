@@ -26,7 +26,7 @@ func main() {
 
 	r.POST("/getHome", handler.GetHomeCombined)
 
-	r.POST("/cms/pc/search/searchWithKeyWord", handler.PCSearch)
+	r.POST("/search", handler.Search)
 
 	r.GET("/cms/web/movieDrama/get", handler.H5MovieDramaGet)
 	r.POST("/cms/web/movieDrama/get", handler.H5MovieDramaGet)
@@ -44,7 +44,7 @@ func main() {
 
 	fmt.Printf("LOKLOK Proxy running on http://0.0.0.0:%s\n", port)
 	fmt.Printf("Endpoints:\n")
-	fmt.Printf("  PC: /cms/pc/search/searchWithKeyWord (POST), /getHome (POST)\n")
+	fmt.Printf("  PC: /search (POST), /getHome (POST)\n")
 	fmt.Printf("  H5: /cms/web/movieDrama/get, /cms/web/ios_h5/movieDrama/getPlayInfo\n")
 	fmt.Printf("  Image: /image?url=... (GET)\n")
 	fmt.Printf("  Internal: /health, /docs, /openapi.yaml\n")

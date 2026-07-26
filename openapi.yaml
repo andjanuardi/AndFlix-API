@@ -200,7 +200,7 @@ components:
           enum: [GROOT_HD, GROOT_SD, GROOT_LD, GROOT_FD]
         url:
           type: string
-          format: uri
+          example: "/stream?url=https://..."
     PlayerInfo:
       type: object
       properties:
@@ -425,6 +425,50 @@ paths:
                     type: string
         "502":
           description: Gagal fetch subtitle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /stream:
+    get:
+      summary: Proxy stream (m3u8 / segment .ts)
+      operationId: proxyStream
+      description: |
+        Proxy HLS stream. Untuk file m3u8, semua URL di dalamnya di-rewrite
+        menjadi `/stream?url=...` agar segment .ts juga terproxy.
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: Stream content (m3u8 atau .ts)
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+            video/MP2T:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing url parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502":
+          description: Gagal fetch stream
           content:
             application/json:
               schema:

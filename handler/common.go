@@ -66,6 +66,46 @@ func subtitleURL(raw interface{}) string {
 	return "/subtitle?url=" + url.QueryEscape(s)
 }
 
+func streamURL(raw interface{}) string {
+	s, ok := raw.(string)
+	if !ok || s == "" {
+		if raw != nil {
+			return fmt.Sprint(raw)
+		}
+		return ""
+	}
+	return "/stream?url=" + url.QueryEscape(s)
+}
+
+func getBaseURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	u.RawQuery = ""
+	u.Fragment = ""
+	slashIdx := strings.LastIndex(u.Path, "/")
+	if slashIdx >= 0 {
+		u.Path = u.Path[:slashIdx+1]
+	}
+	return u.String()
+}
+
+func resolveURL(base, rel string) string {
+	if strings.HasPrefix(rel, "http://") || strings.HasPrefix(rel, "https://") {
+		return rel
+	}
+	u, err := url.Parse(rel)
+	if err != nil {
+		return rel
+	}
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return rel
+	}
+	return baseURL.ResolveReference(u).String()
+}
+
 func forwardRequest(method, url string, headers map[string]string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

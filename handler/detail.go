@@ -288,17 +288,17 @@ func GetDetail(c *gin.Context) {
 					_, defResult, defErr := callH5API("/cms/web/ios_h5/movieDrama/getPlayInfo", defQuery, aeskeyInternal, deviceID, token)
 					if defErr == nil {
 						if defData, ok := defResult["data"].(map[string]interface{}); ok {
-							if url, ok := defData["mediaUrl"].(string); ok && url != "" {
+							if u, ok := defData["mediaUrl"].(string); ok && u != "" {
 								urls = append(urls, gin.H{
 									"definition": code,
-									"url":        url,
+									"url":        streamURL(u),
 								})
 							}
 						}
 					}
 				}
 				if len(urls) == 0 && fallbackDef != "" && fallbackURL != "" {
-					urls = []gin.H{{"definition": fallbackDef, "url": fallbackURL}}
+					urls = []gin.H{{"definition": fallbackDef, "url": streamURL(fallbackURL)}}
 				}
 				if urls == nil {
 					urls = []gin.H{}

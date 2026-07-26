@@ -22,14 +22,7 @@ func main() {
 	r.GET("/docs", handler.DocsHandler)
 	r.GET("/openapi.yaml", handler.SpecHandler)
 
-	r.GET("/home/pc/navigationBar", handler.PCNavigationBar)
-
-	r.GET("/home/pc/getHome", handler.PCGetHome)
-	r.POST("/home/pc/getHome", handler.PCGetHome)
-	r.PUT("/home/pc/getHome", handler.PCGetHome)
-	r.DELETE("/home/pc/getHome", handler.PCGetHome)
-	r.PATCH("/home/pc/getHome", handler.PCGetHome)
-	r.OPTIONS("/home/pc/getHome", handler.PCGetHome)
+	r.GET("/image", handler.ImageProxy)
 
 	r.POST("/getHome", handler.GetHomeCombined)
 
@@ -51,8 +44,9 @@ func main() {
 
 	fmt.Printf("LOKLOK Proxy running on http://0.0.0.0:%s\n", port)
 	fmt.Printf("Endpoints:\n")
-	fmt.Printf("  PC: /home/pc/navigationBar (GET), /home/pc/getHome, /cms/pc/search/searchWithKeyWord (POST), /getHome (POST combined)\n")
+	fmt.Printf("  PC: /cms/pc/search/searchWithKeyWord (POST), /getHome (POST)\n")
 	fmt.Printf("  H5: /cms/web/movieDrama/get, /cms/web/ios_h5/movieDrama/getPlayInfo\n")
+	fmt.Printf("  Image: /image?url=... (GET)\n")
 	fmt.Printf("  Internal: /health, /docs, /openapi.yaml\n")
 
 	if err := r.Run(":" + port); err != nil {

@@ -178,16 +178,29 @@ func proxyPC(c *gin.Context, endpointPath string) {
 	c.JSON(upstreamResp.StatusCode, respJSON)
 }
 
-func PCNavigationBar(c *gin.Context) {
-	proxyPC(c, "/home/pc/navigationBar")
-}
-
-func PCGetHome(c *gin.Context) {
-	proxyPC(c, "/home/pc/getHome")
-}
-
 func PCSearch(c *gin.Context) {
 	proxyPC(c, "/cms/pc/search/searchWithKeyWord")
+}
+
+func imageURL(raw interface{}) string {
+	s, ok := raw.(string)
+	if !ok || s == "" {
+		return ""
+	}
+	return "/image?url=" + url.QueryEscape(s)
+}
+
+func mapStatus(v interface{}) string {
+	switch v := v.(type) {
+	case float64:
+		switch int(v) {
+		case 1:
+			return "Sedang Tayang"
+		case 2:
+			return "Selesai"
+		}
+	}
+	return ""
 }
 
 func GetHomeCombined(c *gin.Context) {
@@ -283,18 +296,31 @@ func GetHomeCombined(c *gin.Context) {
 						if !ok {
 							continue
 						}
+						if tags, ok := cm["tagList"].([]interface{}); ok {
+							skip := false
+							for _, t := range tags {
+								if s, ok := t.(string); ok && s == "LGBTQ" {
+									skip = true
+									break
+								}
+							}
+							if skip {
+								continue
+							}
+						}
 						contentList = append(contentList, gin.H{
-							"id":            cm["id"],
-							"title":         cm["title"],
-							"contentType":   cm["contentType"],
-							"genres":        cm["tagList"],
-							"year":          cm["releaseTime"],
-							"rating":        cm["score"],
-							"cover":         cm["coverHorizontalUrl"],
-							"poster":        cm["imageUrl"],
-							"description":   cm["introduction"],
-							"episodeCount":  cm["resourceNum"],
-							"status":        cm["resourceStatus"],
+							"id":           cm["id"],
+							"title":        cm["title"],
+							"contentType":  cm["contentType"],
+							"genres":       cm["tagList"],
+							"year":         cm["releaseTime"],
+							"rating":       cm["score"],
+							"cover":        imageURL(cm["coverHorizontalUrl"]),
+							"poster":       imageURL(cm["imageUrl"]),
+							"description":  cm["introduction"],
+							"episodeCount": cm["resourceNum"],
+							"status":       mapStatus(cm["resourceStatus"]),
+							"statusCode":   cm["resourceStatus"],
 						})
 					}
 					entry["ContentList"] = contentList

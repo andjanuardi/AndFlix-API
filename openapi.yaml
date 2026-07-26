@@ -292,6 +292,44 @@ components:
             $ref: '#/components/schemas/H5SubtitleItem'
 
 paths:
+  /image:
+    get:
+      summary: Proxy gambar (cover/poster)
+      operationId: proxyImage
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: Gambar
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing url parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502":
+          description: Gagal fetch gambar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
   /health:
     get:
       summary: Health check proxy
@@ -311,77 +349,10 @@ paths:
                     type: string
                     example: loklok-proxy
 
-  /home/pc/navigationBar:
-    get:
-      summary: Daftar navigasi sidebar
-      operationId: getNavigationBar
-      security:
-        - LOKLOKAuth: []
-      responses:
-        "200":
-          description: Daftar navigasi
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          navigationBarItemList:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/NavigationItem'
-
-  /home/pc/getHome:
-    get:
-      summary: Konten halaman utama
-      operationId: getHome
-      parameters:
-        - $ref: '#/components/parameters/DeviceIdHeader'
-        - $ref: '#/components/parameters/AeskeyInternalHeader'
-        - name: page
-          in: query
-          required: true
-          schema:
-            type: integer
-        - name: navigationId
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Konten home
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          navigationId:
-                            type: integer
-                            nullable: true
-                          page:
-                            type: integer
-                          recommendItems:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/HomeSection'
-
   /getHome:
     post:
-      summary: Konten home gabungan (navigationBar + getHome)
-      operationId: getHomeCombined
-      parameters:
-        - $ref: '#/components/parameters/DeviceIdHeader'
-        - $ref: '#/components/parameters/AeskeyInternalHeader'
+      summary: Home — navigasi + konten
+      operationId: getHome
       requestBody:
         required: true
         content:
@@ -401,8 +372,7 @@ paths:
       responses:
         "200":
           description: |
-            Response gabungan — memanggil `/home/pc/navigationBar` dan
-            `/home/pc/getHome` secara berurutan dengan session yang sama.
+            Response home — berisi navigasi dan konten rekomendasi dalam satu panggilan.
           headers:
             X-Device-Id:
               schema:
@@ -457,16 +427,19 @@ paths:
                                 nullable: true
                               cover:
                                 type: string
-                                format: uri
+                                example: "/image?url=https://..."
                               poster:
                                 type: string
-                                format: uri
+                                example: "/image?url=https://..."
                               description:
                                 type: string
                               episodeCount:
                                 type: integer
                                 nullable: true
                               status:
+                                type: string
+                                example: "Selesai"
+                              statusCode:
                                 type: integer
                                 nullable: true
 

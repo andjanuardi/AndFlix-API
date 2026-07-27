@@ -2,16 +2,34 @@
 
 Simplified REST API untuk streaming.
 
+Proxy yang menyederhanakan akses ke layanan streaming menjadi endpoint RESTful yang mudah digunakan.
+
 ## Requirements
 
 - Go 1.21+
 
-## Run
+## Build & Run
+
+### Lokal (Windows/Linux)
 
 ```bash
-go build -o andflix-api.exe .
-andflix-api.exe [port]    # default 8080
+go build -o andflix-api .
+./andflix-api [port]    # default 9996
 ```
+
+### Linux Service
+
+```bash
+# Build binary linux
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o andflix-api .
+
+# Install sebagai systemd service
+sudo bash install.sh
+```
+
+### GitHub Actions
+
+Push ke branch `main` akan otomatis build binary Linux dan upload sebagai artifact (`andflix-api-linux`).
 
 ## Endpoints
 
@@ -31,22 +49,24 @@ andflix-api.exe [port]    # default 8080
 | GET    | `/subtitle` | `?url=...` | File SRT (cache 24 jam)  |
 | GET    | `/stream`   | `?url=...` | M3U8 / .ts (URL rewrite) |
 
-## Session
+## Header
 
-Header untuk persist session:
+Header opsional untuk manajemen session upstream:
 
-| Header              | Keterangan                                                          |
-| ------------------- | ------------------------------------------------------------------- |
-| `X-Device-Id`       | Device identity. Simpan dari response, kirim di request berikutnya. |
-| `X-Aeskey-Internal` | AES key. Simpan dari response, kirim di request berikutnya.         |
-| `X-Token`           | JWT untuk akses terautentikasi.                                     |
+| Header              | Keterangan                                          |
+| ------------------- | --------------------------------------------------- |
+| `X-Device-Id`       | Device ID (dibuat otomatis jika tidak dikirim)       |
+| `X-Aeskey-Internal` | AES key internal (dibuat otomatis)                  |
+| `X-Token`           | Token upstream (opsional)                            |
+
+API dapat diakses tanpa autentikasi (CORS aktif, semua origin diizinkan).
 
 ## Contoh
 
 ### getHome
 
 ```bash
-curl -X POST http://localhost:8080/getHome \
+curl -X POST http://localhost:9996/getHome \
   -H "Content-Type: application/json" \
   -d '{"page": 0, "navId": 1}'
 ```
@@ -54,7 +74,7 @@ curl -X POST http://localhost:8080/getHome \
 ### search
 
 ```bash
-curl -X POST http://localhost:8080/search \
+curl -X POST http://localhost:9996/search \
   -H "Content-Type: application/json" \
   -d '{"size": 10, "keyword": "one piece"}'
 ```
@@ -62,7 +82,7 @@ curl -X POST http://localhost:8080/search \
 ### getDetail
 
 ```bash
-curl -X POST http://localhost:8080/getDetail \
+curl -X POST http://localhost:9996/getDetail \
   -H "Content-Type: application/json" \
   -d '{"id": 103934, "category": 1, "episode": 1}'
 ```
@@ -72,4 +92,5 @@ curl -X POST http://localhost:8080/getDetail \
 - Subtitle hanya bahasa Indonesia (`in_ID`, `in`) dan English (`en`, `en_US`)
 - URL gambar, subtitle, dan stream otomatis di-rewrite ke proxy endpoint
 - `resourceStatus`: 1 → `"Sedang Tayang"`, 2 → `"Selesai"`
-- Build: `go vet` clean
+- Dokumentasi API lengkap: `GET /docs` (Swagger UI)
+- CORS aktif (allow all origins)

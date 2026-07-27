@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"andflix/go-api/handler"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +19,15 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           86400 * time.Second,
+	}))
 
 	r.GET("/health", handler.HealthHandler)
 	r.GET("/docs", handler.DocsHandler)

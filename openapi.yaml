@@ -15,12 +15,12 @@ info:
     - `GET /subtitle` — proxy subtitle SRT (difilter: Indonesia & English)
     - `GET /stream` — proxy HLS (m3u8 rewrite + segment .ts)
 
-    ## Session
+    ## Header
 
-    Session dikelola otomatis via header:
-    - `X-Device-Id` — simpan dari response, kirim kembali di request berikutnya
-    - `X-Aeskey-Internal` — simpan dan kirim kembali
-    - `X-Token` — JWT untuk request terautentikasi
+    Header berikut bersifat opsional untuk manajemen session upstream:
+    - `X-Device-Id` — device ID (dibuat otomatis jika tidak dikirim)
+    - `X-Aeskey-Internal` — AES key internal (dibuat otomatis)
+    - `X-Token` — token upstream (opsional)
 
     ## Catatan
 
@@ -29,16 +29,12 @@ info:
     - `resourceStatus`: 1 → "Sedang Tayang", 2 → "Selesai"
   version: "2.0.0"
 servers:
+  - url: https://api-andflix.andjnet.dpdns.org
+    description: Production server
   - url: http://localhost:8080
     description: Development server
 
 components:
-  securitySchemes:
-    LOKLOKAuth:
-      type: apiKey
-      in: header
-      name: X-Token
-      description: JWT token dari autentikasi
   parameters:
     DeviceIdHeader:
       name: X-Device-Id
@@ -47,6 +43,13 @@ components:
       schema:
         type: string
       description: Device ID dari response proxy sebelumnya
+    TokenHeader:
+      name: X-Token
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Token upstream (opsional)
     AeskeyInternalHeader:
       name: X-Aeskey-Internal
       in: header
@@ -55,142 +58,6 @@ components:
         type: string
       description: AES key internal (PC API only)
   schemas:
-    ApiResponse:
-      type: object
-      properties:
-        code:
-          type: string
-          example: "00000"
-        msg:
-          type: string
-          example: "Success"
-        data:
-          type: object
-          nullable: true
-    NavigationItem:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        cnName:
-          type: string
-        redirectContentType:
-          type: string
-          enum: [HOME, RANK]
-        redirectUrl:
-          type: string
-        pictureUrl:
-          type: string
-        sequence:
-          type: integer
-    ContentItem:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        introduction:
-          type: string
-        coverHorizontalUrl:
-          type: string
-          format: uri
-        coverVerticalUrl:
-          type: string
-          format: uri
-        score:
-          type: number
-          format: float
-          nullable: true
-        releaseTime:
-          type: string
-        resourceNum:
-          type: integer
-          nullable: true
-        resourceStatus:
-          type: integer
-          nullable: true
-        domainType:
-          type: integer
-        subType:
-          type: string
-          enum: [MOVIE, DRAMA, COMIC, TV, VARIETY]
-        sort:
-          type: string
-        areas:
-          type: array
-          items:
-            $ref: "#/components/schemas/NamePair"
-        episodeVo:
-          type: array
-          items:
-            $ref: "#/components/schemas/EpisodeSummary"
-    NamePair:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-    EpisodeSummary:
-      type: object
-      properties:
-        seriesNo:
-          type: integer
-        paidMode:
-          type: integer
-        ellipsis:
-          type: boolean
-    HomeSection:
-      type: object
-      properties:
-        homeSectionId:
-          type: integer
-        homeSectionType:
-          type: string
-          enum: [BANNER, SINGLE_ALBUM]
-        homeSectionName:
-          type: string
-        cnName:
-          type: string
-        bannerProportion:
-          type: number
-          format: float
-        recommendContentVOList:
-          type: array
-          items:
-            $ref: "#/components/schemas/HomeContentItem"
-    HomeContentItem:
-      type: object
-      properties:
-        cid:
-          type: string
-        contentType:
-          type: string
-          enum: [MOVIE, DRAMA]
-        title:
-          type: string
-        imageUrl:
-          type: string
-          format: uri
-        introduction:
-          type: string
-        year:
-          type: integer
-        score:
-          type: number
-          format: float
-          nullable: true
-        resourceStatus:
-          type: integer
-          nullable: true
-        resourceNum:
-          type: integer
-          nullable: true
-        jumpAddress:
-          type: string
     H5SubtitleItem:
       type: object
       properties:
@@ -232,106 +99,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/StreamItem"
-    H5DefinitionItem:
-      type: object
-      properties:
-        code:
-          type: string
-          enum: [GROOT_HD, GROOT_SD, GROOT_LD, GROOT_FD]
-        description:
-          type: string
-        fullDescription:
-          type: string
-    H5EpisodeItem:
-      type: object
-      properties:
-        id:
-          type: integer
-        seriesNo:
-          type: integer
-        name:
-          type: string
-        definitionList:
-          type: array
-          items:
-            $ref: "#/components/schemas/H5DefinitionItem"
-        subtitlingList:
-          type: array
-          items:
-            $ref: "#/components/schemas/H5SubtitleItem"
-        totalTime:
-          type: integer
-        vid:
-          type: string
-        resourceType:
-          type: integer
-        viewable:
-          type: boolean
-        paidMode:
-          type: integer
-          nullable: true
-    MovieDetailData:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        enName:
-          type: string
-        introduction:
-          type: string
-        category:
-          type: integer
-        episodeCount:
-          type: integer
-        episodeRelease:
-          type: integer
-        coverHorizontalUrl:
-          type: string
-          format: uri
-        coverVerticalUrl:
-          type: string
-          format: uri
-        areaNameList:
-          type: array
-          items:
-            type: string
-        drameTypeVo:
-          type: object
-          properties:
-            drameName:
-              type: string
-            drameType:
-              type: string
-        episodeVo:
-          type: array
-          items:
-            $ref: "#/components/schemas/H5EpisodeItem"
-        likeList:
-          type: array
-          items:
-            $ref: "#/components/schemas/ContentItem"
-    PlayInfoData:
-      type: object
-      properties:
-        mediaUrl:
-          type: string
-          format: uri
-        totalDuration:
-          type: integer
-        currentDefinition:
-          type: string
-        episodeId:
-          type: string
-        definitionList:
-          type: array
-          items:
-            $ref: "#/components/schemas/H5DefinitionItem"
-        subtitlingList:
-          type: array
-          items:
-            $ref: "#/components/schemas/H5SubtitleItem"
     ContentListItem:
       type: object
       properties:
@@ -367,6 +134,143 @@ components:
         status:
           type: string
         statusCode:
+          type: integer
+          nullable: true
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: loklok-proxy
+    NavItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    HomeContentItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        contentType:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        year:
+          type: integer
+          nullable: true
+        rating:
+          type: number
+          format: float
+          nullable: true
+        cover:
+          type: string
+        poster:
+          type: string
+        description:
+          type: string
+        episodeCount:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        statusCode:
+          type: integer
+          nullable: true
+    HomeSection:
+      type: object
+      properties:
+        type:
+          type: string
+        Name:
+          type: string
+        ContentList:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeContentItem"
+    HomeResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        navList:
+          type: array
+          items:
+            $ref: "#/components/schemas/NavItem"
+        sectionList:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeSection"
+    SearchResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        result:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentListItem"
+    DetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+        contentType:
+          type: string
+        category:
+          type: integer
+        genres:
+          type: array
+          items:
+            type: string
+        countries:
+          type: array
+          items:
+            type: string
+          nullable: true
+        year:
+          type: integer
+          nullable: true
+        rating:
+          type: number
+          format: float
+          nullable: true
+        cover:
+          type: string
+        poster:
+          type: string
+        description:
+          type: string
+        episodeCount:
+          type: integer
+          nullable: true
+        episodeRelease:
+          type: integer
+        status:
+          type: string
+        statusCode:
+          type: integer
+          nullable: true
+        playerInfo:
+          $ref: "#/components/schemas/PlayerInfo"
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentListItem"
+        totalDuration:
           type: integer
           nullable: true
 
@@ -500,14 +404,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                  service:
-                    type: string
-                    example: andflix-api
+                $ref: "#/components/schemas/HealthResponse"
 
   /getHome:
     post:
@@ -543,65 +440,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  navList:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        name:
-                          type: string
-                  sectionList:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                        Name:
-                          type: string
-                        ContentList:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              id:
-                                type: integer
-                              title:
-                                type: string
-                              contentType:
-                                type: string
-                              genres:
-                                type: array
-                                items:
-                                  type: string
-                              year:
-                                type: integer
-                                nullable: true
-                              rating:
-                                type: number
-                                format: float
-                                nullable: true
-                              cover:
-                                type: string
-                                example: "/image?url=https://..."
-                              poster:
-                                type: string
-                                example: "/image?url=https://..."
-                              description:
-                                type: string
-                              episodeCount:
-                                type: integer
-                                nullable: true
-                              status:
-                                type: string
-                                example: "Selesai"
-                              statusCode:
-                                type: integer
-                                nullable: true
+                $ref: "#/components/schemas/HomeResponse"
 
   /search:
     post:
@@ -636,47 +475,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  result:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        title:
-                          type: string
-                        contentType:
-                          type: string
-                        genres:
-                          type: array
-                          items:
-                            type: string
-                        countries:
-                          type: array
-                          items:
-                            type: string
-                        year:
-                          type: integer
-                        rating:
-                          type: number
-                          format: float
-                          nullable: true
-                        cover:
-                          type: string
-                        poster:
-                          type: string
-                        description:
-                          type: string
-                        episodeCount:
-                          type: integer
-                          nullable: true
-                        status:
-                          type: string
-                        statusCode:
-                          type: integer
-                          nullable: true
+                $ref: "#/components/schemas/SearchResponse"
 
   /getDetail:
     post:
@@ -717,55 +516,4 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  title:
-                    type: string
-                  type:
-                    type: string
-                  contentType:
-                    type: string
-                  category:
-                    type: integer
-                  genres:
-                    type: array
-                    items:
-                      type: string
-                  countries:
-                    type: array
-                    items:
-                      type: string
-                    nullable: true
-                  year:
-                    type: integer
-                    nullable: true
-                  rating:
-                    type: number
-                    format: float
-                    nullable: true
-                  cover:
-                    type: string
-                  poster:
-                    type: string
-                  description:
-                    type: string
-                  episodeCount:
-                    type: integer
-                    nullable: true
-                  status:
-                    type: string
-                  statusCode:
-                    type: integer
-                    nullable: true
-                  playerInfo:
-                    type: object
-                    $ref: "#/components/schemas/PlayerInfo"
-                  recommendations:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ContentListItem"
-                  totalDuration:
-                    type: integer
-                    nullable: true
+                $ref: "#/components/schemas/DetailResponse"

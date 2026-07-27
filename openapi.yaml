@@ -285,6 +285,8 @@ components:
           type: integer
         episodeCount:
           type: integer
+        episodeRelease:
+          type: integer
         coverHorizontalUrl:
           type: string
           format: uri

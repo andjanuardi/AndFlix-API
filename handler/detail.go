@@ -161,6 +161,9 @@ func GetDetail(c *gin.Context) {
 		response["poster"] = imageURL(detailData["coverVerticalUrl"])
 		response["description"] = detailData["introduction"]
 		response["episodeCount"] = detailData["episodeCount"]
+		if eps, ok := detailData["episodeVo"].([]interface{}); ok {
+			response["episodeRelease"] = len(eps)
+		}
 		response["status"] = mapStatus(detailData["resourceStatus"])
 		response["statusCode"] = detailData["resourceStatus"]
 

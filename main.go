@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	port := "8080"
+	port := "9996"
 	if len(os.Args) > 1 {
 		port = os.Args[1]
 	}
@@ -43,7 +43,7 @@ func main() {
 
 	r.POST("/getDetail", handler.GetDetail)
 
-	fmt.Printf("LOKLOK Proxy running on http://0.0.0.0:%s\n", port)
+	fmt.Printf("ANDFLIX API running on http://0.0.0.0:%s\n", port)
 	fmt.Printf("Endpoints:\n")
 	fmt.Printf("  Core: /getHome (POST), /search (POST), /getDetail (POST)\n")
 	fmt.Printf("  Image: /image?url=... (GET)\n")

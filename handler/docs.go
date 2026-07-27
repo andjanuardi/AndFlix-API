@@ -7,7 +7,7 @@ func DocsHandler(c *gin.Context) {
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>AndFlix — LOKLOK API Proxy</title>
+<title>AndFlix — ANDFLIX API Proxy</title>
 <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
 </head>
 <body>

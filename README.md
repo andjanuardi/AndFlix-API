@@ -23,8 +23,8 @@ go build -o andflix-api .
 # Build binary linux
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o andflix-api .
 
-# Install sebagai systemd service
-sudo bash install.sh
+# Install sebagai systemd service (perlu root)
+sudo ./andflix-api --install
 ```
 
 ### GitHub Actions

@@ -43,9 +43,13 @@ func main() {
 
 	r.POST("/getDetail", handler.GetDetail)
 
+	r.GET("/filter", handler.GetFilter)
+
+	r.POST("/filterResult", handler.GetFilterResult)
+
 	fmt.Printf("ANDFLIX API running on http://0.0.0.0:%s\n", port)
 	fmt.Printf("Endpoints:\n")
-	fmt.Printf("  Core: /getHome (POST), /search (POST), /getDetail (POST)\n")
+	fmt.Printf("  Core: /getHome (POST), /search (POST), /getDetail (POST), /filter (GET), /filterResult (POST)\n")
 	fmt.Printf("  Image: /image?url=... (GET)\n")
 	fmt.Printf("  Subtitle: /subtitle?url=... (GET)\n")
 	fmt.Printf("  Stream: /stream?url=... (GET)\n")

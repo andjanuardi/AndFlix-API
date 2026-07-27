@@ -11,6 +11,8 @@ info:
     - `POST /getHome` — navigasi + konten halaman utama
     - `POST /search` — pencarian film, drama, TV
     - `POST /getDetail` — detail konten + player streaming + subtitle
+    - `GET /filter` — opsi filter pencarian (area, kategori, tahun, urutan)
+    - `POST /filterResult` — hasil filter pencarian
     - `GET /image` — proxy gambar (cover/poster)
     - `GET /subtitle` — proxy subtitle SRT (difilter: Indonesia & English)
     - `GET /stream` — proxy HLS (m3u8 rewrite + segment .ts)
@@ -273,8 +275,183 @@ components:
         totalDuration:
           type: integer
           nullable: true
+    ScreeningItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              params:
+                type: string
+              screeningType:
+                type: string
+              selected:
+                type: boolean
+    FilterGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        params:
+          type: string
+        websiteParam:
+          type: string
+        selected:
+          type: boolean
+        screeningItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreeningItem"
+    FilterResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        result:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterGroup"
+    FilterResultItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        subType:
+          type: string
+        score:
+          type: string
+        coverVerticalUrl:
+          type: string
+        domainType:
+          type: integer
+        ifErotic:
+          type: boolean
+        ifSameSex:
+          type: boolean
+        resourceNum:
+          type: integer
+          nullable: true
+        resourceStatus:
+          type: integer
+          nullable: true
+        sort:
+          type: string
+        websiteParam:
+          type: string
+        cornerInfoList:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              sort:
+                type: integer
+        rankInfo:
+          type: object
+          properties:
+            groupId:
+              type: integer
+            rankDesc:
+              type: string
+            rankId:
+              type: integer
+            rankType:
+              type: integer
+    FilterResultResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        result:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterResultItem"
 
 paths:
+  /filter:
+    get:
+      summary: Opsi filter pencarian
+      operationId: getFilter
+      responses:
+        "200":
+          description: Daftar opsi filter (area, kategori, tahun, urutan)
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+            X-Aeskey-Internal:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilterResponse"
+
+  /filterResult:
+    post:
+      summary: Hasil filter pencarian
+      operationId: getFilterResult
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - size
+                - params
+              properties:
+                size:
+                  type: integer
+                  example: 28
+                params:
+                  type: string
+                  example: MOVIE
+                searchScreeningName:
+                  type: string
+                  example: Film
+                area:
+                  type: string
+                  example: "61"
+                category:
+                  type: string
+                  example: "18"
+                year:
+                  type: string
+                  example: "2026,2026"
+                order:
+                  type: string
+                  example: score
+      responses:
+        "200":
+          description: Hasil filter berupa daftar konten
+          headers:
+            X-Device-Id:
+              schema:
+                type: string
+            X-Aeskey-Internal:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilterResultResponse"
+
   /image:
     get:
       summary: Proxy gambar (cover/poster)

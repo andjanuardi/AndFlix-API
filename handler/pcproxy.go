@@ -308,20 +308,24 @@ func GetHomeCombined(c *gin.Context) {
 								continue
 							}
 						}
-						contentList = append(contentList, gin.H{
-							"id":           cm["id"],
-							"title":        cm["title"],
-							"contentType":  cm["contentType"],
-							"genres":       cm["tagList"],
-							"year":         cm["releaseTime"],
-							"rating":       cm["score"],
-							"cover":        imageURL(cm["coverHorizontalUrl"]),
-							"poster":       imageURL(cm["imageUrl"]),
-							"description":  cm["introduction"],
-							"episodeCount": cm["resourceNum"],
-							"status":       mapStatus(cm["resourceStatus"]),
-							"statusCode":   cm["resourceStatus"],
-						})
+					itemID := cm["id"]
+					if cid, ok := cm["cid"]; ok && cid != nil {
+						itemID = cid
+					}
+					contentList = append(contentList, gin.H{
+						"id":           itemID,
+						"title":        cm["title"],
+						"contentType":  cm["contentType"],
+						"genres":       cm["tagList"],
+						"year":         cm["releaseTime"],
+						"rating":       cm["score"],
+						"cover":        imageURL(cm["coverHorizontalUrl"]),
+						"poster":       imageURL(cm["imageUrl"]),
+						"description":  cm["introduction"],
+						"episodeCount": cm["resourceNum"],
+						"status":       mapStatus(cm["resourceStatus"]),
+						"statusCode":   cm["resourceStatus"],
+					})
 					}
 					entry["ContentList"] = contentList
 				}

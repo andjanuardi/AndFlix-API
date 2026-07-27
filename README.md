@@ -17,17 +17,9 @@ go build -o andflix-api .
 ./andflix-api [port]    # default 9996
 ```
 
-### Linux Service
-
-```bash
-# Build binary linux
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o andflix-api .
-
-# Install sebagai systemd service (perlu root)
-sudo ./andflix-api --install
-```
-
 ### GitHub Actions
+
+Push ke branch `main` akan otomatis build binary Linux dan upload sebagai artifact (`andflix-api-linux`).
 
 Push ke branch `main` akan otomatis build binary Linux dan upload sebagai artifact (`andflix-api-linux`).
 

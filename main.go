@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"time"
 
 	"andflix/go-api/handler"
@@ -13,11 +12,6 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--install" {
-		install()
-		return
-	}
-
 	port := "9996"
 	if len(os.Args) > 1 {
 		port = os.Args[1]
@@ -61,52 +55,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to start server: %v\n", err)
 		os.Exit(1)
 	}
-}
-
-func install() {
-	exe, err := os.Executable()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get executable path: %v\n", err)
-		os.Exit(1)
-	}
-
-	dest := "/usr/local/bin/andflix-api"
-	port := "9996"
-	svc := "/etc/systemd/system/andflix-api.service"
-
-	data, err := os.ReadFile(exe)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read binary: %v\n", err)
-		os.Exit(1)
-	}
-	if err := os.WriteFile(dest, data, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to copy binary: %v\n", err)
-		os.Exit(1)
-	}
-
-	content := fmt.Sprintf(`[Unit]
-Description=ANDFLIX API Service
-After=network.target
-
-[Service]
-Type=simple
-User=root
-ExecStart=%s %s
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-`, dest, port)
-
-	if err := os.WriteFile(svc, []byte(content), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to write service file: %v\n", err)
-		os.Exit(1)
-	}
-
-	exec.Command("systemctl", "daemon-reload").Run()
-	exec.Command("systemctl", "enable", "andflix-api").Run()
-	exec.Command("systemctl", "restart", "andflix-api").Run()
-
-	fmt.Println("ANDFLIX API Service installed and running on port", port)
 }

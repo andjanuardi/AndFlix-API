@@ -114,6 +114,9 @@ func forwardRequest(method, url string, headers map[string]string, body io.Reade
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36")
+	}
 	return httpClient.Do(req)
 }
 
